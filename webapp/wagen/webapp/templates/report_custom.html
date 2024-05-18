@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <title>Water accounting report</title>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <meta name="description" content="Report for area {{ area }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="/static/css/report_custom.css">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.9.0/css/ol.css" type="text/css">
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.9.0/build/ol.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> 
+  </head>
+
+<section class="header">
+    <h1>Water accounting report</h1>
+    <h3>{{ area }} - {{ stats.st }} to {{ stats.sp }}</h3>
+
+</section>
+<body>
+<aside>
+    <article>
+    <h4>Land cover type distribution</h4>
+    <div class="imagebox">
+        <img style='width: 45%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/pie.png "/>
+        <img style='width: 45%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/leg.png"/><br>
+        Figure 3: Pie chart showing land cover area distribution
+    </div>
+    </article>
+
+    <article>
+    <div class="imagebox">
+    <img style='width: 65%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/lc.png"/><br>
+    Figure 4: Land cover map (Copernicus) of study area (<a href="{{ settings.MEDIA_URL }}{{ job }}/LC.tif" download>Download data</a>)
+    </div>
+    </article>
+    <article>
+    <h4>Annual P and ETa</h4>
+    <div class="imagebox">
+    <img style='width: 90%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/pcpbar1.png"/><br>
+    Figure 7: Annual P ({{ stats.pcp }}) in mm/year over the study area from {{ stats.st }} to {{ stats.sp }}
+    </div>
+    </article>
+    <p style="page-break-before: always;"</p>
+    <article>
+    <div class="imagebox">
+    <img style='width: 90%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/pcpbar2.png"/><br>
+    Figure 8: Comparison of Annual P ({{ stats.pcp }}) from different products from {{ stats.st }} to {{ stats.sp }}
+    </div>
+    </article>
+    <article>
+    <div class="imagebox">
+    <img style='width: 90%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/etabar.png"/><br>
+    Figure 9: Annual ETa ({{ stats.et }}) in mm/year over the study area from {{ stats.st }} to {{ stats.sp }}
+    </div>
+    </article>
+    <article>
+    <div class="imagebox">
+    <img style='width: 90%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/pminetbar.png"/><br>
+    Figure 10: Annual P-ETa (mm/year) over the study area from {{ stats.st }} to {{ stats.sp }}
+    </div>
+    </article>      
+    <article>
+    <div class="imagebox">
+    <img style='width: 100%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/lcbar.png"/><br>
+    Figure 12: Annual ETa ({{ stats.et }}) and precipitation ({{ stats.pcp }}) per land cover type
+    </div>
+    </article>
+    <article>
+    <div class="imagebox">
+    <img style='width: 90%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/monthlyetabar.png"/><br>
+    Figure 17: Monthly ETa ({{ stats.et }}) and P ({{ stats.pcp }}) distribution over the study area
+    </div>
+    </article>
+    <article>
+      <div class="imagebox">
+        <img style='width: 90%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/grace_fig.png" /><br>
+        Figure 18: Change in waterstorage (cm) from 2002 to 2021 (Source: GRACE data)
+      </div>
+    </article>
+<!--   <article>
+    <div class="imagebox">
+      <img style='width: 90%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/monthlyndvi.png" /><br>
+      Figure 20: Monthly NDVI distribution over the study area
+    </div>
+  </article>
+  <article>
+    <div class="imagebox">
+      <img style='width: 90%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/monthlyndvi_crop.png" /><br>
+      Figure 21: Monthly NDVI distribution over the cropland
+    </div>
+  </article> -->
+</aside>
+<section id="main">
+<article>
+<h2>Study area </h2>
+<p>
+The study area - <b>{{ area }}</b> lies between Longitudes: <b>{{ stats.w }} - {{ stats.e }}</b> & Latitudes: <b>{{ stats.s }} - {{ stats.n }}</b>. The total area is <b>{{ stats.area }} Sq.Km</b>. <hlt>Figure 1</hlt> is an interactive map showing the study area boundary with labels of major places in the region. <br>
+</p>
+<div class="imagebox">
+  <div id="map" class="map"></div><br>
+  Figure 1: Study area
+</div>
+<p>
+The elevation in the study area varies between <b>{{ stats.dem_min }} m </b> and <b>{{ stats.dem_max }} m</b>. <hlt>Figure 2</hlt> shows the distribution of elevation and topography of the study area using the <a href="https://www.eorc.jaxa.jp/ALOS/en/aw3d30/index.htm">global Digital Elevation Model (DEM)</a> data.The values represent elevation from above sea level. Areas in blue have lower elevation than those in yellow and brown. <br>
+</p>
+<div class="imagebox">
+  <img style='width: 45%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/fig1.png" alt=""><br>
+  Figure 2: Study area with distribution of elevation (<a href="{{ settings.MEDIA_URL }}{{ job }}/DEM.tif" download>Download data</a>)
+</div>
+
+<p>
+The major land cover types in the {{ area }} are <b>{{ stats.lc0 }}</b> and <b>{{ stats.lc1 }}</b> covering an area of <b>{{ stats.lca0 }} Sq.Km</b> and <b>{{ stats.lca1 }} Sq.Km</b> respectively. <br>
+<hlt>Figure 3</hlt> is a pie chart showing the area distribution of different land cover types in the study area, while <hlt>Figure 4</hlt> shows the spatial distribution of the land cover types in the study area. In these figures, different land cover types are represented by unique colors. For example croplands are shown in light green. Croplands in this map, and also in <hlt>Figure 3</hlt>, represent both irrigated and rainfed areas.
+</p>
+
+
+<h2> Precipitation and Evapotranspiration </h2>
+<p>
+<b>Precipitation</b> is the key water source in the hydrological cycle. It refers to all forms of condensation of atmospheric water vapor that falls from clouds. The main forms of precipitation include drizzling, rain, sleet, snow, ice pellets, graupel and hail. In the river basins, where there is no other inflow (e.g. through surface or subsurface flow), the total precipitation accounts for the entire total gross inflow, in the water accounting terms, in any given time period. <br>
+<br>
+For estimating precipitation in the study area,the remote sensing based {{ stats.pcp }} data is used. Mean annual P over the basin is reported to be {{ stats.p }} mm/year. <hlt>Figure 5</hlt> (right) shows the distribution of P over the study area. P values in this map represent the average annual P for the study period of {{ stats.st }} - {{ stats.sp }}. The daily data were aggregated to annual maps and the average annual P per year for the study area was calculated for the duration of the study. Areas mapped in light blue in <hlt>Figure 5</hlt> (right) receive lower precipitation than the areas in darker shades of blue. The legend provided explains the values different colors represent.<br>
+<br>
+</p>
+<div class="imagebox">
+  <img style='width: 42%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/eta.png" alt="">
+  <img style='width: 42%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/pcp.png" alt=""><br>
+  Figure 5: Left - Mean annual ETa map ({{ stats.et }}); Right - Mean annual PCP map ({{ stats.pcp }}). Download <a href="{{ settings.MEDIA_URL }}{{ job }}/ETa.tif" download>ETa</a> & <a href="{{ settings.MEDIA_URL }}{{ job }}/PCP.tif" download>PCP</a> data
+ </div>
+
+<p>
+<b>Evapotranspiration</b> is another key component of the hydrological cycle. It refers to the water that is lost to the atmosphere through the vaporization process. Water that becomes evapotranspired is no longer available for further use, hence it is commonly referred to as consumed water in the water accounting terminology. For this report, the long-term average annual ETa values from the {{ stats.et }} product was used to estimate and map ETa in the study area for the selected period. <hlt>Figure 5</hlt> (Left)shows the spatial distribution of the average annual ETa. The average annual ETa in the study area is {{ stats.eta }} mm/year. The ETa values are mapped in red-yellow-Blue gradient representing lower-mid-high water consumption in the study area. Open water bodies, typically, have the highest ETa values. This is, usually, followed by areas covered by dense forests and irrigated croplands. In contrast, low ET areas are usually dry areas such as deserts, barelands, urban areas and sparsely vegetated areas. Although this could vary from a place to another, based on the specific characteristics of the study area.<br>
+<br>
+</p>
+<div class="imagebox">
+<img style='width: 42%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/etanomaly.png" alt="">
+<img style='width: 42%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/pminuset.png" alt=""><br>
+Figure 6: Left - Annual ETa anomaly (SSebop); Right - Mean annual P - ETa ({{ stats.et }}-{{ stats.pcp }}) map over study area. Download <a href="{{ settings.MEDIA_URL }}{{ job }}/ETano.tif" download>ETa Anomaly</a> & <a href="{{ settings.MEDIA_URL }}{{ job }}/PminusET.tif" download>P-ETa</a> data
+</div>
+<p>
+<hlt>Figure 6</hlt> shows the spatial distribution of ETa anomaly (Left) mean annual precipitation excess or deficit (Right) over the study area. In this figure, ETa anomaly refers to the variation of ETa in {{ stats.sp }} from the long term ETa. ETa anomaly is computed by computing the percentage change in ETa with respect to the long term median. Higher the percentage (> 100), there was positive change in ETa values, lower values represent the decrease in ETa values. The method is explained <a href="https://www.mdpi.com/1424-8220/20/7/1915">here</a>. <br>
+<br>
+ETa anomaly is a measure of dryness or wetness. Areas with low values (shown in red) might have experienced drought, depending on the level of variation, and areas with higher values (in blue) have had higher than average water availability, which could be due to increased rainfall or increased irrigation.<br>
+<br>
+<hlt>Figure 6</hlt> right shows Precipitation minus Evapotranspiration (P-ET). P-ET is an indicator that is used in hydrology to investigate availability, or lack thereof, of excessive water in an area. Positive values of P-ET is indicative of presence of surplus water. Depending on the terrain and landscape characteristics, this surplus leaves the area through surface runoff, deeperculation, or both. Negative values of P-ET, indicate that ET has exceeded P. This means water consumption has been supported by additional flow of water which could be due to irrigation or the natural process that leads to such an effect (e.g. in flood recessions areas). The figure maps P-ET in light red-yellow-blue gradient representing high-mid-low precipitation deficit in the study area. Areas in red are typically water bodies and irrigated areas, if present. Areas in blue are water generating areas, typically located in high rainfall areas such as highlands. These areas could be of importance for water availability in the basin and in the downstream areas.<br>
+</p>
+
+<h2> Temporal analysis of Precipitation, ET, and P-ET</h2>
+<p>
+In this section temporal variation of ETa, P and P-ETa for the years {{ stats.st }} - {{ stats.sp }} is analysed. <br>
+
+<hlt>Figure 7</hlt> shows the interannual variability of rainfall over the study area. Each bar represents the average precipitation over the study area for the indicated years in mm. The bar graphs are computed using the products - {{ stats.pcp }}. In a multi year analysis (>6 yr), the years with higher P are those that are typically referred to as wet years and those with the lowest P can be considered dry years.<br>
+<br>
+In addition, two other global precipitation products were processed for the study period (See <hlt>Table 6</hlt> for details). This provides a comparison of the precipitation estimates by different remote sensing based global products. The results of this comparison can be seen in <hlt>Figure 8</hlt>. This comparison helps the users to select the precipitation product that shows more agreement with the ground measurements, if available, in the study area.<br>
+<br>
+<hlt>Figure 9</hlt> shows the interannual variability of ETa over the study area. Each bar represents the average ETa over the study area for the indicated years in mm. The bar graphs are computed using the product - {{ stats.et }}. <br>
+<br>
+<hlt>Figure 10</hlt> shows the variation in precipitation excess or deficit over the years by plotting the bar graph of annual P-ETa. In this plot, blue represents the precipitation excess and red represents the precipitation deficit.<br>
+<br>
+The temporal variation of water use by each land cover type in the study area is plotted in <hlt>Figure 11</hlt>. Each year is represented by uniques color in this plot. <hlt>Table 1</hlt> lists the yearly statistics of annual P and ETa in mm/year and km<sup>3</sup>/year for the study period - {{ stats.st }} - {{ stats.sp }}. <br>
+<br>
+
+<table style="overflow-x:auto; margin: 0 auto;" id="csv1Root"></table>
+<div class="imagebox">Table 1: The total annual precipitation (P) and actual evapotranspiration (ETa) from {{ stats.st }} - {{ stats.sp }} in the {{ area }} computed using {{ stats.et }} & {{ stats.pcp }} (<a href="{{ settings.MEDIA_URL }}{{ job }}/Table1.csv" download>Download Table</a>) </div>
+
+<div class="imagebox">
+  <img style='width: 75%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/lcbaret.png" alt=""><br>
+  Figure 11: Temporal variation of ETa per land cover type from 2010 - 2020 computed using {{ stats.et }} & {{ stats.pcp }}
+ </div>
+<br>
+
+<h2>Land cover based Precipitation and ETa analysis </h2>
+<p>
+Land cover has an important role in hydrology and in water consumption patterns. Hence, to gain better insight into patterns in water availability and water consumption in the study area, P and ETa data was processed to extract these variables per land cover type. It is computed from annual P and ETa using the time series of spatial maps obtained from multiple sources as listed in <hlt>Table 6</hlt>. The long-term average annual ETa values from the {{ stats.et }} product and P values from {{ stats.pcp }} per land cover type were extracted to compare the water availability and consumption. <hlt>Figure 12</hlt> is a bar plot showing long term annual average ETa and P per Land cover type. <hlt>Table 2 & 3</hlt> list the mean annual P, ETa and P-ETa for each land cover type in the study area in mm/year and km<sup>3</sup>/year respectively.<br>
+
+<table style="overflow-x:auto; margin: 0 auto;" id="csv2Root"></table>
+<div class="imagebox">Table 2: The mean annual P, ETa and P-ETa in mm/year for each land cover class from {{ stats.st }} - {{ stats.sp }} in the {{ area }} computed using {{ stats.et }} & {{ stats.pcp }} (<a href="{{ settings.MEDIA_URL }}{{ job }}/Table2.csv" download>Download Table</a>) </div>
+
+<table style="overflow-x:auto; margin: 0 auto;" id="csv3Root"></table>
+<div class="imagebox">Table 3: The mean annual P, ETa and P-ETa in km<sup>3</sup>/year for each land cover class from {{ stats.st }} - {{ stats.sp }} in the {{ area }} computed using {{ stats.et }} & {{ stats.pcp }} (<a href="{{ settings.MEDIA_URL }}{{ job }}/Table3.csv" download>Download Table</a>) </div>
+
+</p>
+
+<h2>Trend analysis of Precipitation and ETa</h2>
+<p>
+The time series of Annual ETa and P give insights into the climatic impact on water availability and scarcity in the study area. To understand the variation of ETa and P over the period from {{ stats.st }} - {{ stats.sp }}, delta ETa and delta P were computed as a residual of long term averages. Delta ETa and P are plotted in <hlt>Figure 13</hlt> with linear trend line showing increasing or decreasing trends in the anomalies. <br>
+<br>
+Long term annual precipitation for 40 years is plotted for the period 1981 to 2020 to understand the trend. <hlt>Figure 14</hlt> shows the annual precipitation for 40 years with a linear trend line.
+</p>
+
+ <div class="imagebox">
+  <img style='width: 48%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/panoplot.png" alt="">
+  <img style='width: 48%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/etanoplot.png" alt=""><br>
+  Figure 13: Left - Annual ETa anomaly; Right - Annual P anomaly, plotted for years {{ stats.st }} - {{ stats.sp }} using {{ stats.et }} & {{ stats.pcp }} products
+ </div>
+
+ <div class="imagebox">
+  <img style='width: 100%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/pcpbarts.png" alt=""><br>
+  Figure 14: Long term precipitation variation from 1981 to 2020 derived from CHIRPS data
+ </div>
+
+ <!-- 
+<h2>Blue and Green ET</h2>
+ <p>
+The annual actual ETa is divided into green and blue water. Green  water represents the fraction of precipitation that infiltrates into the soil and is available to plants; while blue water comprising runoff, groundwater, and stream
+base flow. <br>
+<br>
+The average annual ETb and ETg over cropland in the study area is {{ stats.etb }} mm/year & {{ stats.etg }} mm/year respectively.
+In this analysis, green ETa was computed by subtracting the average ETa over Rainfed area from ETa over the cropland. The remaining ETa over cropland were considered as blue ETa. The Rainfed area was computed from the <a href="http://due.esrin.esa.int/page_globcover.php">Globcover land cover map</a>. This methodology is explained <a href="https://www.sciencedirect.com/science/article/pii/S2214581821000896">here</a>.
+
+<hlt>Figure 15</hlt> shows the spatial distribution of blue and green ETa over cropland. The blue and green ETa are mapped in red-yellow-Blue gradient representing lower-mid-high water use in the study area.
+ </p>
+
+<div class="imagebox">
+<img style='width: 48%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/etb.png" alt="">
+<img style='width: 48%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/etg.png" alt=""><br>
+Figure 15: Left - Annual ET blue map; Right - Annual ET green map over cropland computed using {{ stats.et }}. Download <a href="{{ settings.MEDIA_URL }}{{ job }}/ETb.tif" download>ETb</a> & <a href="{{ settings.MEDIA_URL }}{{ job }}/ETg.tif" download>ETg</a> data
+</div>
+-->
+<!-- 
+<h2>Partitioning ETa into Ea and Ta</h2>
+<p>
+Evapotranspiration (ETa) is an aggregation of Evaporation (E) and Transpiration (T). E is related to the vaporization of water from wet surfaces (e.g. water bodies, wet soils, wet urban covers, etc.) and T related to the vaporization of water resulting from the process of water movement through a plant and its vaporization from aerial parts, such as leaves, stems and flowers. While E may not be avoidable in the natural landscape, only T contributes to vegetation growth. Hence, in croplands only T is considered as “Beneficial” consumption of water.<br>
+<br> 
+<hlt>Figure 16</hlt> shows the average annual Ea and Ta in the study area. Maps are in red-yellow-Blue gradient representing lower-mid-high E and T in the study area.
+</p>
+
+<div class="imagebox">
+<img style='width: 48%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/ea.png" alt="">
+<img style='width: 48%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/ta.png" alt=""><br>
+Figure 16: Left - Annual Ea map; Right - Annual Ta map computed using {{ stats.et }}. Download <a href="{{ settings.MEDIA_URL }}{{ job }}/Ea.tif" download>Ea</a> & <a href="{{ settings.MEDIA_URL }}{{ job }}/Ta.tif" download>Ta</a> data
+</div>
+
+<table style="overflow-x:auto; margin: 0 auto;" id="csv4Root"></table>
+<div class="imagebox">Table 4: The total annual Ea and Ta in mm/year and km<sup>3</sup>/year from {{ stats.st }} - {{ stats.sp }} in the {{ area }} (<a href="{{ settings.MEDIA_URL }}{{ job }}/Table4.csv" download>Download Table</a>) </div>
+
+<table style="overflow-x:auto; margin: 0 auto;" id="csv5Root"></table>
+<div class="imagebox">Table 5: The mean annual Ea, Ta, ETg & ETb in mm/year for each land cover class from {{ stats.st }} - {{ stats.sp }} in the {{ area }} (<a href="{{ settings.MEDIA_URL }}{{ job }}/Table5.csv" download>Download Table</a>)  </div>
+ -->
+<h2>Water Productivity</h2>
+<p>
+The biomass production over different land cover types in the study area was estimated using the Total Biomass Production (TBP) data obtained from the Copernicus Global Land service. TBP represents the overall growth rate or dry biomass increase of the vegetation and is directly related to ecosystem Net Primary Productivity (NPP), however with units customized for agro-statistical purposes (kg/ha/day). The 10 days product were downloaded and aggregated at monthly scale. 
+
+The WP indicator gives an estimate about the production per unit of water use. In this case seasonal TBP is used representing the overall biomass growth rate. The biomass water productivity was computed using the below formula: <br>
+<br>
+<i>Annual WPb = Annual TBP / Annual ETa</i>.<br>
+<br>
+<hlt>Figure 16</hlt> shows the spatial distribution of TBP (Left) WP (right) over cropland computed from averaged annual maps for the period - {{ stats.st }} - {{ stats.sp }}. TBP map in <hlt>Figure 15</hlt> uses a dark brown-white-green representing lower-mid-high biomass production in kg/ha. Water productivity is mapped with a red to green gradient, red areas represents lower WPb and green areas represents higher WPb.
+</p>
+
+<div class="imagebox">
+<img style='width: 42%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/dmp.png" alt="">
+<img style='width: 42%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/wpdmp.png" alt=""><br>
+Figure 15: Left - Annual TBP (Kg/ha) map; Right - Annual Water Productivity (Kg/m3) map over cropland
+</div>
+<h2>Water Deficit Index (WDI)</h2>
+<p>
+Mapping WDI over cropland provide insights about lack of water availability spatially and support investment decisions that aim at improving equity in service delivery across the cropped area. In this analysis the maximum ETa computed from the univariate distribution of ETa over the cropland was used following the formula: <br>
+<br>
+<i>WDI = 1 - (ETa / ETx)</i> <br>
+<br>
+Where ETx is the maximum ETa over cropland. <hlt>Figure 16</hlt> shows the spatial distribution of WDI over the cropland. WDI is mapped with a blue to red gradient, blue areas represents low water deficit and red areas represents higher water deficit regions.
+</p>
+
+<div class="imagebox">
+  <img style='width: 45%; height:auto;' src="{{ settings.MEDIA_URL }}{{ job }}/rwd.png" alt=""><br>
+Figure 16: Water Deficit Index (WDI) over cropland in study area
+</div>
+<p>
+Further long term monthly mean ETa and P from 2010 to 2020 were extracted and plotted (<hlt>Figure 17</hlt>) to understand the monthly variation of ETa and P over the study area. 
+
+<!--Monthly NDVI is plotted (<hlt>Figure 20 & 21</hlt>) to understand the temporal vegetation dynamics over the study area and over the cropland. -->
+</p>
+<h2>Data sources</h2>
+<p>
+Open access remote sensing datasets were used to estimate the relevant metrics related to consumptive water use in the study area. For the estimates of water consumption, Precipitation (P) and Actual EvapoTranspiration (ETa) datasets were used at varying spatial resolutions. <br>
+<br>
+The Land cover type information in the study area is computed from the <a href="https://lcviewer.vito.be/2015">Global landcover map</a> released by Copernicus program of European Union which is available at 100m. The main input to develop this map are the time series of PROBA-V satellite observations. The global landscape is divided into 23 discrete land cover types following the UN-FAO’s Land Cover Classification System (LCCS). <br>
+<br>        
+In this analysis, DEM data from the Japan Aerospace Exploration Agency (JAXA) were used to understand the topography of the basin. The ALOS World 3D - 30m (AW3D30) is generated from images collected using the Panchromatic Remote-sensing Instrument for Stereo Mapping (PRISM) aboard the Advanced Land Observing Satellite (ALOS) from 2006 to 2011. The data is open access and free to use for any scientific studies. <br>
+<br>
+Time series of ETa data available from global product - Operational Simplified Surface Energy Balance (SSEBop) at 1 Km spatial resolution was used and made available to the users. SSEBop is developed by applying a simplified surface energy balance model with MODIS sensor data as key input. <br>
+<br>
+For Precipitation, three global products were made available for the users to select. The products available are – GPM, CHIRPS and PERSIANN (See <hlt>Table 4</hlt> for details). <br>
+<br>
+<hlt>Table 4</hlt> lists the data used in this analysis and its specifications including sources.
+</p>
+
+<table style="overflow-x:auto; margin: 0 auto;" id="csv6Root"></table>
+<div class="imagebox">Table 4: Open access data sources used in this analysis </div>
+
+</article>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.2.0/papaparse.min.js"></script>
+
+<script type="text/javascript"charset="utf-8">
+class TableCsv {
+  /**
+   * @param {HTMLTableElement} root The table element which will display the CSV data.
+   */
+  constructor(root) {
+    this.root = root;
+  }
+
+  /**
+   * Clears existing data in the table and replaces it with new data.
+   *
+   * @param {string[][]} data A 2D array of data to be used as the table body
+   * @param {string[]} headerColumns List of headings to be used
+   */
+  update(data, headerColumns = []) {
+    this.clear();
+    this.setHeader(headerColumns);
+    this.setBody(data);
+  }
+
+  /**
+   * Clears all contents of the table (incl. the header).
+   */
+  clear() {
+    this.root.innerHTML = "";
+  }
+
+  /**
+   * Sets the table header.
+   *
+   * @param {string[]} headerColumns List of headings to be used
+   */
+  setHeader(headerColumns) {
+    this.root.insertAdjacentHTML(
+      "afterbegin",
+      `
+            <thead>
+                <tr>
+                    ${headerColumns.map((text) => `<th>${text}</th>`).join("")}
+                </tr>
+            </thead>
+        `
+    );
+  }
+
+  /**
+   * Sets the table body.
+   *
+   * @param {string[][]} data A 2D array of data to be used as the table body
+   */
+  setBody(data) {
+    const rowsHtml = data.map((row) => {
+      return `
+                <tr>
+                    ${row.map((text) => `<td>${text}</td>`).join("")}
+                </tr>
+            `;
+    });
+
+    this.root.insertAdjacentHTML(
+      "beforeend",
+      `
+            <tbody>
+                ${rowsHtml.join("")}
+            </tbody>
+        `
+    );
+  }
+}
+
+const csv1File = '{{ settings.MEDIA_URL }}{{ job }}/Table1.csv';
+const csv1FileInput = csv1File.toString();
+const table1Root = document.querySelector("#csv1Root");
+const table1Csv = new TableCsv(table1Root);
+
+
+Papa.parse(csv1File, {
+  delimiter: ",",
+  download: true,
+  skipEmptyLines: true,
+  complete: (results) => {
+    table1Csv.update(results.data.slice(1), results.data[0]);
+  }
+});
+
+const csv2File = '{{ settings.MEDIA_URL }}{{ job }}/Table2.csv';
+const csv2FileInput = csv2File.toString();
+const table2Root = document.querySelector("#csv2Root");
+const table2Csv = new TableCsv(table2Root);
+
+
+Papa.parse(csv2File, {
+  delimiter: ",",
+  download: true,
+  skipEmptyLines: true,
+  complete: (results) => {
+    table2Csv.update(results.data.slice(1), results.data[0]);
+  }
+});
+
+const csv3File = '{{ settings.MEDIA_URL }}{{ job }}/Table3.csv';
+const csv3FileInput = csv3File.toString();
+const table3Root = document.querySelector("#csv3Root");
+const table3Csv = new TableCsv(table3Root);
+
+
+Papa.parse(csv3File, {
+  delimiter: ",",
+  download: true,
+  skipEmptyLines: true,
+  complete: (results) => {
+    table3Csv.update(results.data.slice(1), results.data[0]);
+  }
+});
+
+const csv4File = '{{ settings.MEDIA_URL }}{{ job }}/Table4.csv';
+const csv4FileInput = csv4File.toString();
+const table4Root = document.querySelector("#csv4Root");
+const table4Csv = new TableCsv(table4Root);
+
+
+Papa.parse(csv4File, {
+  delimiter: ",",
+  download: true,
+  skipEmptyLines: true,
+  complete: (results) => {
+    table4Csv.update(results.data.slice(1), results.data[0]);
+  }
+});
+
+const csv5File = '{{ settings.MEDIA_URL }}{{ job }}/Table5.csv';
+const csv5FileInput = csv5File.toString();
+const table5Root = document.querySelector("#csv5Root");
+const table5Csv = new TableCsv(table5Root);
+
+
+Papa.parse(csv5File, {
+  delimiter: ",",
+  download: true,
+  skipEmptyLines: true,
+  complete: (results) => {
+    table5Csv.update(results.data.slice(1), results.data[0]);
+  }
+});
+
+const csv6File = '{{ settings.STATIC_URL }}data/datasource.csv';
+const csv6FileInput = csv6File.toString();
+const table6Root = document.querySelector("#csv6Root");
+const table6Csv = new TableCsv(table6Root);
+
+
+Papa.parse(csv6File, {
+  delimiter: ",",
+  download: true,
+  skipEmptyLines: true,
+  complete: (results) => {
+    table6Csv.update(results.data.slice(1), results.data[0]);
+  }
+});
+
+</script>
+
+<script type="text/javascript">
+var source = new ol.source.Vector({
+  url: 'bound.geojson',
+  format: new ol.format.GeoJSON(),
+});
+
+var vectorLayer = new ol.layer.Vector({
+  source: source,
+});
+
+var center = [{{ stats.centx }}, {{ stats.centy }}]
+var view = new ol.View({
+  center: ol.proj.fromLonLat(center),
+  zoom: 5,
+});
+
+var map = new ol.Map({
+  layers: [
+    new ol.layer.Tile({
+      source: new ol.source.OSM({
+		url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+		attributions: ['&copy; <a href="https://www.esri.com/en-us/home">Basemap by Esri</a>']
+		}),
+    }),
+    vectorLayer,
+  ],
+  target: 'map',
+  view: view,
+});
+var layerExtent = source.getExtent();
+var extent = ol.proj.fromLonLat(layerExtent);
+view.fit(extent);
+
+searchResultSource.on('addfeature', function() {
+  map.getView().fit(extent);
+});
+</script>
+</body>
+
+</html>

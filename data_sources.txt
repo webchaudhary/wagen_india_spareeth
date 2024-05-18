@@ -1,0 +1,66 @@
+#### This text file has information about data sources and processing information to be used in this app ######
+
+1) WaPOR datasets for ActualEvapotranspiration, Preceipitation (CHIRPS), LCC
+Resolution = 250 m
+spatial coverage = Africa + Middle East
+Temporal = Monthly, Annual
+Availability = COG in Google Cloud (Very fast)
+## to set the config (use these credentials: GOOG1E7AS2UK7R3WNQ4OQKNUFHM5JJ6S3E6UPE5OJHQWNPGENUTVACQVM7ZMQuLyQ1es9CDoCZp4QlnDjxeXx7NOhQbmeuAJcaTaP)
+gsutil config -a
+## To list all the folders in the gcs bucket
+gsutil ls -d gs://fao-wapor-data/
+## To copy all level 3 Zankalon AETI Annual to my hard disk
+gsutil -m cp -r gs://fao-wapor-data/L3_ZAN_AETI_A/* .
+
+## Direct processing of COG using GDAL (projection and clipping)
+gdalwarp -s_srs epsg:4326 -t_srs ESRI:54012 -te_srs epsg:4326 -te 44.0092 35.5881 48.0746 38.5226 -tr 250 250 /vsigs/fao-wapor-data/L1_AETI_A/L1_AETI_09.tif test_clip.tif
+
+
+2) SSEbOP 
+Resolution = 1000 m
+spatial coverage = Global
+Temporal = Monthly, Annual
+Availability = https
+
+## Annual data download
+
+for i in `seq 2009 2019`; do out="y${i}.zip"; wget https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/fews/web/global/yearly/etav5/downloads/${out}; done
+Monthly data here: https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/fews/web/global/monthly/etav5/downloads/
+
+## Process downloaded data with GDAL/GRASS GIS:
+
+
+3) TRMM Precipitation (To find out a https/ftp source.)
+Dataset available in GEE - Only upto 2019, hence decided not to include.
+
+4) GPM Precipitation(To find out a https/ftp source.)
+Dataset available in GEE
+
+5) MODIS ETa
+
+6) GRACE
+Find the link
+
+8) Global Land cover (MODIS?)
+
+9) chirps - https://data.chc.ucsb.edu/products/CHIRPS-2.0/
+
+10) PERSIANN - https://chrsdata.eng.uci.edu/ (Downloaded from GEE)
+
+11) NASA GRACE - https://nasagrace.unl.edu/
+
+## For plotting and basic stats Following data may need to be used.
+12)  Basins boundaries, DEM , Population, Cities, Inland waters, Aquifers, Cropland, Irrigated area 
+Natural Earth https://www.naturalearthdata.com/
+
+13) WMO GRDC on global runoff - https://www.bafg.de/GRDC/EN/Home/homepage_node.html 
+
+14) Countries boundaries - https://ec.europa.eu/eurostat/web/gisco/geodata/reference-data/administrative-units-statistical-units/countries
+
+15) water levels inland water bodies: https://dahiti.dgfi.tum.de/
+
+# REPORT WISH LIST
+https://www.unwater.org/publications/un-water-country-briefs-gambia/
+
+we could use plotly for plots and simple maps https://plotly.com/python, https://plotly.com/python/map-configuration/
+probably the best to print the report is to use html and CSS
